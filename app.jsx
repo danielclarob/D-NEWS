@@ -1,10 +1,22 @@
 // D'NEWS — main app (matches reference: light editorial, sticky ticker, hero, sidebar, saved + clusters)
-const { useState, useMemo, useRef } = React;
+const { useState, useMemo, useRef, useEffect } = React;
 const STORIES = window.DNEWS_STORIES;
 const MARKETS = window.DNEWS_MARKETS;
 const NAV = window.DNEWS_NAV;
 const TRENDING = window.DNEWS_TRENDING;
 const CLUSTERS = window.DNEWS_CLUSTERS;
+
+// Re-render cuando api-client.js termina de cargar datos reales desde Supabase.
+// Los arrays se mutaron in-place, así que basta con forzar un repaint.
+function useDataVersion() {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    const on = () => setV((x) => x + 1);
+    window.addEventListener("dnews:data-loaded", on);
+    return () => window.removeEventListener("dnews:data-loaded", on);
+  }, []);
+  return v;
+}
 
 // ---------- icons ----------
 const I = {
@@ -528,6 +540,7 @@ function MobileApp({ savedIds, toggle, expandedId, setExpanded, route, setRoute,
 
 // ---------- App root ----------
 function App() {
+  useDataVersion(); // re-render cuando api-client.js carga datos reales
   const [tweaks, setTweak] = window.useTweaks({
     view: "desktop",
     accent: "orange",
