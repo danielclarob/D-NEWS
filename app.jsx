@@ -6,6 +6,12 @@ const NAV = window.DNEWS_NAV;
 const TRENDING = window.DNEWS_TRENDING;
 const CLUSTERS = window.DNEWS_CLUSTERS;
 
+// Fecha de hoy (dinámica) para los encabezados del briefing
+const _today = new Date();
+const TODAY_LONG  = _today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }).toUpperCase();
+const TODAY_TITLE = _today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+const TODAY_SHORT = `${_today.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()} · ${_today.toLocaleDateString("en-US", { month: "short" }).toUpperCase()} ${_today.getDate()}, ${_today.getFullYear()}`;
+
 // Re-render cuando api-client.js termina de cargar datos reales desde Supabase.
 // Los arrays se mutaron in-place, así que basta con forzar un repaint.
 function useDataVersion() {
@@ -216,12 +222,12 @@ function HomePage({ savedIds, toggle, expandedId, setExpanded, breakingOpen, set
   const list = STORIES.slice(1, 11);
   return (
     <>
-      {breakingOpen && <Breaking text={STORIES.find(s => s.breaking).title} onClose={() => setBreakingOpen(false)} />}
+      {breakingOpen && STORIES.some(s => s.breaking) && <Breaking text={STORIES.find(s => s.breaking).title} onClose={() => setBreakingOpen(false)} />}
       <main className="page">
         <div>
           <div className="page-head">
             <div>
-              <div className="page-eyebrow">WEDNESDAY, APRIL 29, 2026</div>
+              <div className="page-eyebrow">{TODAY_LONG}</div>
               <div className="page-title"><span className="ai">{I.sparkle}</span> Your daily briefing <span className="page-meta">· Read in 5 min</span></div>
             </div>
             <div className="briefing-toggle">
@@ -259,7 +265,7 @@ function BriefPage() {
         <span className="brief-eyebrow">{I.doc} Daily Briefing</span>
       </div>
       <h1 className="brief-title">Your Daily Brief</h1>
-      <div className="brief-sub">Wednesday, April 29, 2026 · Read in 5 minutes</div>
+      <div className="brief-sub">{TODAY_TITLE} · Read in 5 minutes</div>
 
       <div className="brief-section-h"><span className="icon">{I.flag}</span> Top 5 Chile Stories</div>
       {chile.map((s, i) => (
@@ -439,7 +445,7 @@ function MobileApp({ savedIds, toggle, expandedId, setExpanded, route, setRoute,
           </div>
         </div>
 
-        {breakingOpen && route === "home" && <Breaking text={STORIES.find(s => s.breaking).title} onClose={() => setBreakingOpen(false)} />}
+        {breakingOpen && route === "home" && STORIES.some(s => s.breaking) && <Breaking text={STORIES.find(s => s.breaking).title} onClose={() => setBreakingOpen(false)} />}
 
         <div className="m-shell" ref={scrollerRef}
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
@@ -454,7 +460,7 @@ function MobileApp({ savedIds, toggle, expandedId, setExpanded, route, setRoute,
           {route === "home" && (
             <>
               <div className="m-page-head">
-                <div className="page-eyebrow">WED · APR 29, 2026</div>
+                <div className="page-eyebrow">{TODAY_SHORT}</div>
                 <div className="page-title"><span className="ai">{I.sparkle}</span> Your daily briefing</div>
               </div>
               <div className="m-content">
