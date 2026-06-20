@@ -544,11 +544,25 @@ function MobileApp({ savedIds, toggle, expandedId, setExpanded, route, setRoute,
   );
 }
 
+// Detecta el ancho real de la pantalla para elegir layout automáticamente.
+function useIsNarrow(bp = 768) {
+  const [narrow, setNarrow] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= bp : false
+  );
+  useEffect(() => {
+    const on = () => setNarrow(window.innerWidth <= bp);
+    on();
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, [bp]);
+  return narrow;
+}
+
 // ---------- App root ----------
 function App() {
   useDataVersion(); // re-render cuando api-client.js carga datos reales
   const [tweaks, setTweak] = window.useTweaks({
-    view: "desktop",
+    view: "auto",
     accent: "orange",
     serifTitles: true,
     showBreaking: true,
@@ -567,14 +581,15 @@ function App() {
 
   const showBrief = briefMode === "deep" && route === "home";
 
-  return (
-    <div className={"app view-" + tweaks.view} style={{ "--orange": accentVar, fontFamily: tweaks.serifTitles ? undefined : "var(--sans)" }}>
-      <div className="frame-switch">
-        <button className={tweaks.view === "desktop" ? "on" : ""} onClick={() => setTweak("view", "desktop")}>Desktop</button>
-        <button className={tweaks.view === "mobile" ? "on" : ""} onClick={() => setTweak("view", "mobile")}>Mobile</button>
-      </div>
+  // Layout automático: en pantallas angostas (teléfono real) → móvil a pantalla
+  // completa. El tweak permite forzar Desktop/Mobile para previsualizar.
+  const isNarrow = useIsNarrow(768);
+  const effectiveView = tweaks.view === "auto" ? (isNarrow ? "mobile" : "desktop") : tweaks.view;
+  const mobileLive = effectiveView === "mobile" && tweaks.view === "auto";
 
-      {tweaks.view === "desktop" ? (
+  return (
+    <div className={"app view-" + effectiveView + (mobileLive ? " view-mobile-live" : "")} style={{ "--orange": accentVar, fontFamily: tweaks.serifTitles ? undefined : "var(--sans)" }}>
+      {effectiveView === "desktop" ? (
         <>
           <Ticker data={MARKETS} />
           <TopNav active={active} setActive={setActive}
@@ -603,10 +618,10 @@ function App() {
       <window.TweaksPanel title="Tweaks">
         <window.TweakSection title="View">
           <window.TweakRadio label="Device" value={tweaks.view} onChange={(v) => setTweak("view", v)}
-            options={[{ value: "desktop", label: "Desktop" }, { value: "mobile", label: "Mobile" }]} />
+            options={[{ value: "auto", label: "Auto" }, { value: "desktop", label: "Desktop" }, { value: "mobile", label: "Mobile" }]} />
           <window.TweakRadio label="Section" value={route} onChange={setRoute}
             options={[{ value: "home", label: "Home" }, { value: "saved", label: "Saved" }]} />
-          {route === "home" && tweaks.view === "desktop" && (
+          {route === "home" && effectiveView === "desktop" && (
             <window.TweakRadio label="Brief mode" value={briefMode} onChange={setBriefMode}
               options={[{ value: "fast", label: "Fast feed" }, { value: "deep", label: "Deep brief" }]} />
           )}
