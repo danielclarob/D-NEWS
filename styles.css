@@ -621,10 +621,13 @@ button { font-family: inherit; cursor: pointer; }
 }
 .app.view-mobile-live .m-status { display: none; } /* el teléfono real ya trae su barra */
 .app.view-mobile-live .m-shell { flex: none; overflow: visible; }
+.app.view-mobile-live .m-ticker { position: static; } /* el ticker base es fixed; en móvil va en flujo */
 .app.view-mobile-live .m-nav {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 520px;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  width: 100%; max-width: 520px; margin: 0 auto;
+  z-index: 60;
 }
+.app.view-mobile-live .m-content { padding-bottom: 96px; } /* deja aire para la barra fija */
 
 /* responsive desktop → tablet */
 @media (max-width: 980px) {
